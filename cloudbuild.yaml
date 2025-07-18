@@ -1,50 +1,47 @@
-# cloudbuild.yaml ── FRONTEND ONLY
-substitutions:
-  _IMAGE: us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend
-
+# ───────────────────────────────── cloudbuild.yaml ───────────────────────────
+# Assumes this file sits in the repo root and the frontend source code
+# (including Dockerfile) lives under ./frontend
 steps:
-# ──────────────────────────────────────────────────────────────
-# 1. Build the Docker image (tagged with commit SHA)
-# ──────────────────────────────────────────────────────────────
+# 1) BUILD  ───────────────────────────────────────────────────────────────────
 - name: gcr.io/cloud-builders/docker
   id: Build FE image
-  dir: frontend                # build context = ./frontend
+  dir: frontend                 # run docker build *inside* the frontend folder
   args:
     [
       'build',
-      '-t', '${_IMAGE}:${SHORT_SHA}',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest',
       '.'
     ]
 
-# ──────────────────────────────────────────────────────────────
-# 2. Push the image to Artifact Registry
-# ──────────────────────────────────────────────────────────────
+# 2) PUSH  ────────────────────────────────────────────────────────────────────
 - name: gcr.io/cloud-builders/docker
-  id: Push FE image
-  args:
-    [
-      'push',
-      '${_IMAGE}:${SHORT_SHA}'
-    ]
+  id: Push FE image ($SHORT_SHA)
+  args: [
+    'push',
+    'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA'
+  ]
 
-# ──────────────────────────────────────────────────────────────
-# 3. Deploy that exact image to Cloud Run
-# ──────────────────────────────────────────────────────────────
+- name: gcr.io/cloud-builders/docker
+  id: Push FE image (latest)
+  args: [
+    'push',
+    'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
+  ]
+
+# 3) DEPLOY ───────────────────────────────────────────────────────────────────
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   id: Deploy to Cloud Run
   entrypoint: gcloud
   args:
     [
       'run','deploy','ai-prompt-coach-frontend',
-      '--image','${_IMAGE}:${SHORT_SHA}',
-      '--platform','managed',
       '--region','us-central1',
+      '--image','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA',
+      '--platform','managed',
       '--allow-unauthenticated'
     ]
 
-# Listing the image here will also push it automatically,
-# but we’ve already done an explicit push above.
 images:
-- '${_IMAGE}:${SHORT_SHA}'
-
-timeout: 1200s   # 20 min
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
