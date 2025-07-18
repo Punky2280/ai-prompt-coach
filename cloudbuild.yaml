@@ -1,25 +1,26 @@
-# ───────────────────────────────── cloudbuild.yaml ───────────────────────────
-# Assumes this file sits in the repo root and the frontend source code
-# (including Dockerfile) lives under ./frontend
+# ─────────────────────────────── cloudbuild.yaml ──────────────────────────────
+# Location: repo root
+# The frontend source (and its Dockerfile) lives in ./frontend
+# ──────────────────────────────────────────────────────────────────────────────
 steps:
-# 1) BUILD  ───────────────────────────────────────────────────────────────────
+# 1) BUILD  ────────────────────────────────────────────────────────────────────
 - name: gcr.io/cloud-builders/docker
   id: Build FE image
-  dir: frontend                 # run docker build *inside* the frontend folder
+  dir: frontend          # run docker build *inside* the frontend folder
   args:
     [
       'build',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA',
-      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest',
+      '-t','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID',
+      '-t','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest',
       '.'
     ]
 
-# 2) PUSH  ────────────────────────────────────────────────────────────────────
+# 2) PUSH  ─────────────────────────────────────────────────────────────────────
 - name: gcr.io/cloud-builders/docker
-  id: Push FE image ($SHORT_SHA)
+  id: Push FE image ($BUILD_ID)
   args: [
     'push',
-    'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA'
+    'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID'
   ]
 
 - name: gcr.io/cloud-builders/docker
@@ -29,7 +30,7 @@ steps:
     'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
   ]
 
-# 3) DEPLOY ───────────────────────────────────────────────────────────────────
+# 3) DEPLOY  ───────────────────────────────────────────────────────────────────
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   id: Deploy to Cloud Run
   entrypoint: gcloud
@@ -37,11 +38,11 @@ steps:
     [
       'run','deploy','ai-prompt-coach-frontend',
       '--region','us-central1',
-      '--image','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA',
+      '--image','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID',
       '--platform','managed',
       '--allow-unauthenticated'
     ]
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$SHORT_SHA'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID'
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
