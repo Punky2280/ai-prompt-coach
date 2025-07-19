@@ -1,0 +1,47 @@
+const { GoogleAuth } = require('google-auth-library');
+const fetch = require('node-fetch');
+
+const PROJECT_ID = 'ai-prompt-coach-466304';
+const LOCATION = 'us-central1';
+const MODEL = 'gemini-pro';
+const API_ENDPOINT = `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent`;
+
+const auth = new GoogleAuth({
+  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+});
+
+async function generateText(prompt) {
+  try {
+    const client = await auth.getClient();
+    const accessToken = await client.getAccessToken();
+
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken.token || accessToken.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
+    });
+
+    const result = await response.json();
+    console.log('Gemini response:', JSON.stringify(result, null, 2));
+
+    return (
+      result?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      'No response from Gemini'
+    );
+  } catch (err) {
+    console.error('Gemini error:', JSON.stringify(err, null, 2));
+    return 'Error generating text';
+  }
+}
+
+module.exports = { generateText };

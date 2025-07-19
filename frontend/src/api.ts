@@ -1,11 +1,30 @@
-export async function chat(prompt: string) {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
-    });
-  
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
-  }
-  
+// src/api.ts
+import axios from 'axios';
+import type { PromptResponse, HistoryItem } from './types';
+
+const API = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE,
+  timeout: 20_000,
+});
+
+// POST /api/prompts  → { answer }
+export async function sendPrompt(
+  prompt: string,
+): Promise<PromptResponse> {
+  const { data } = await API.post<PromptResponse>(
+    '/api/prompts',
+    { prompt },
+  );
+  return data;
+}
+
+// GET /api/history?limit=20  → HistoryItem[]
+export async function fetchHistory(
+  limit = 20,
+): Promise<HistoryItem[]> {
+  const { data } = await API.get<HistoryItem[]>(
+    '/api/history',
+    { params: { limit } },
+  );
+  return data;
+}

@@ -15,6 +15,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Aliases */
+    "baseUrl": ".",                    // ✅ anchors path mapping at project root
+    "paths": {
+      "@/*": ["src/*"]                // ✅ lets you import from '@/components/...'
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

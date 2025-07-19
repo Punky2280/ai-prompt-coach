@@ -1,0 +1,74 @@
+const { GoogleAuth } = require('google-auth-library');
+const fetch = require('node-fetch');
+
+const PROJECT_ID = 'ai-prompt-coach-466304';
+const LOCATION   = 'us-central1';
+const MODEL      = 'gemini-pro';
+
+const API_ENDPOINT =
+  \`https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${MODEL}:generateContent\`;
+
+const auth = new GoogleAuth({
+  scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+});
+
+async function generateText(prompt) {
+  try {
+    // -----------------------------------------------------------------
+    // 1.  Get access token
+    // -----------------------------------------------------------------
+    const client      = await auth.getClient();
+    const accessToken = await client.getAccessToken();
+    const bearer =
+      typeof accessToken === 'string'
+        ? accessToken
+        : accessToken?.token || accessToken?.access_token;
+
+    // -----------------------------------------------------------------
+    // 2.  Make request to Vertex AI
+    // -----------------------------------------------------------------
+    const response = await fetch(API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: \`Bearer ${bearer}\`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
+    });
+
+    // -----------------------------------------------------------------
+    // 3.  Handle non-2xx responses explicitly
+    // -----------------------------------------------------------------
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => '');
+      throw new Error(
+        \`VertexAI ${response.status} ${response.statusText}\n\${errorBody}\`
+      );
+    }
+
+    // -----------------------------------------------------------------
+    // 4.  Parse and return the model output
+    // -----------------------------------------------------------------
+    const result = await response.json();
+    console.log('Gemini response:', JSON.stringify(result, null, 2));
+
+    return (
+      result?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      'No response from Gemini'
+    );
+  } catch (err) {
+    // Full error visibility
+    console.error('Gemini error – message:', err.message);
+    console.error('Gemini error – stack:', err.stack);
+    return 'Error generating text';
+  }
+}
+
+module.exports = { generateText };
