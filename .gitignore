@@ -1,0 +1,9 @@
+# Node + PNPM / NPM
+**/node_modules/
+dist/
+.next/
+.turbo/
+# Build artifacts
+frontend/dist/
+# Terraform
+**/.terraform/

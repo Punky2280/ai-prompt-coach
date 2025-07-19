@@ -1,4 +1,3 @@
-# ─────────────────────────────── frontend/Dockerfile ─────────────────────────
 ###############################################################################
 # Stage 1 – build static assets with Node
 ###############################################################################
@@ -19,12 +18,17 @@ RUN npm run build      # → creates /app/dist
 ###############################################################################
 FROM nginx:stable-alpine
 
-# Remove the default nginx.conf and replace with one that listens on 8080
+# Replace the default nginx.conf with one that uses ${PORT}
 RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # copy built files
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+# ─── CHANGES ↓ ────────────────────────────────────────────────────────────────
+ENV PORT=8085          # ① default for local + Cloud Run
+EXPOSE 8085            # ② advertise the port
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Substitute $PORT into nginx config before starting
+CMD ["sh","-c","envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

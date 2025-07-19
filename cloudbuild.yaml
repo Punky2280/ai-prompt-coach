@@ -1,38 +1,37 @@
-# ─────────────────────────────── cloudbuild.yaml ──────────────────────────────
-# Location: repo root
-# The frontend source (and its Dockerfile) lives in ./frontend
+# ────────────────────────────── cloudbuild.yaml ──────────────────────────────
+# Builds, pushes and deploys the FRONTEND container to Cloud Run (managed)
+# Repo layout:
+#   • ./frontend           (Dockerfile lives here)
 # ──────────────────────────────────────────────────────────────────────────────
 steps:
-# 1) BUILD  ────────────────────────────────────────────────────────────────────
-- name: gcr.io/cloud-builders/docker
-  id: Build FE image
-  dir: frontend          # run docker build *inside* the frontend folder
+# 1) BUILD ─────────────────────────────────────────────────────────────────────
+- id: Build FE image
+  name: gcr.io/cloud-builders/docker
+  dir: frontend                # build context = ./frontend
   args:
     [
       'build',
-      '-t','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID',
-      '-t','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest',
       '.'
     ]
 
-# 2) PUSH  ─────────────────────────────────────────────────────────────────────
-- name: gcr.io/cloud-builders/docker
-  id: Push FE image ($BUILD_ID)
-  args: [
-    'push',
-    'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID'
-  ]
+# 2) PUSH ──────────────────────────────────────────────────────────────────────
+- id: Push FE image ($BUILD_ID)
+  name: gcr.io/cloud-builders/docker
+  args: [ 'push',
+          'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID'
+        ]
 
-- name: gcr.io/cloud-builders/docker
-  id: Push FE image (latest)
-  args: [
-    'push',
-    'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
-  ]
+- id: Push FE image (latest)
+  name: gcr.io/cloud-builders/docker
+  args: [ 'push',
+          'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
+        ]
 
-# 3) DEPLOY  ───────────────────────────────────────────────────────────────────
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  id: Deploy to Cloud Run
+# 3) DEPLOY ────────────────────────────────────────────────────────────────────
+- id: Deploy to Cloud Run
+  name: gcr.io/google.com/cloudsdktool/cloud-sdk
   entrypoint: gcloud
   args:
     [
@@ -40,9 +39,11 @@ steps:
       '--region','us-central1',
       '--image','us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID',
       '--platform','managed',
-      '--allow-unauthenticated'
+      '--allow-unauthenticated',
+      '--port','8085'               # ← NEW: make Cloud Run listen on 8085
     ]
 
+# List images for the Build History page
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:$BUILD_ID'
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/ai-prompt-coach/frontend:latest'
