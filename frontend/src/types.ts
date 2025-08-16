@@ -11,3 +11,15 @@ export interface Conversation {
   starred: boolean;
   updatedAt: number;          // unix ms
 }
+
+// API Response Types
+export interface PromptResponse {
+  answer: string;
+}
+
+export interface HistoryItem {
+  id: string;
+  prompt: string;
+  answer?: string;
+  createdAt?: Date | any;  // Firestore timestamp
+}

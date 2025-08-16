@@ -26,6 +26,27 @@ app.use(morgan('dev'));                // request logger
 app.get('/',   (_req, res) => res.send('AI Prompt backend is live!'));
 app.get('/ping', (_req, res) => res.json({ status: 'ok' })); // health
 
+// Comprehensive health check endpoint
+app.get('/health', async (_req, res) => {
+  const { useInMemoryFallback } = require('./lib/firestore');
+  
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: useInMemoryFallback ? 'in-memory-fallback' : 'firestore',
+      ai: process.env.USE_MOCK_RESPONSES === 'true' ? 'mock' : 'gemini',
+      server: 'running'
+    },
+    endpoints: {
+      'POST /api/prompts': 'available',
+      'GET /api/history': 'available'
+    }
+  };
+  
+  res.json(health);
+});
+
 app.use('/api/prompts', promptRoutes);   // POST /api/prompts
 app.use('/api/history', historyRoutes);  // GET  /api/history?limit=n
 

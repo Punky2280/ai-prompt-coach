@@ -7,7 +7,7 @@
 const express   = require("express");
 const router    = express.Router();
 const { generateText } = require("../services/gemini");   // JS wrapper
-const { promptsCol }   = require("../lib/firestore");     // your Firestore util
+const { promptsCol, useInMemoryFallback }   = require("../lib/firestore");     // your Firestore util
 
 router.post("/", async (req, res) => {
   try {
@@ -20,12 +20,18 @@ router.post("/", async (req, res) => {
     // Forward optional knobs to the wrapper if you like
     const answer = await generateText(cleanPrompt, { model, thinkingBudget });
 
-    // Persist to Firestore
-    await promptsCol.add({
-      prompt: cleanPrompt,
-      answer,
-      createdAt: new Date(),          // nicer in the console / query
-    });
+    // Persist to Firestore or in-memory fallback
+    try {
+      await promptsCol.add({
+        prompt: cleanPrompt,
+        answer,
+        createdAt: new Date(),          // nicer in the console / query
+      });
+      console.log(`✅ Stored prompt successfully (${useInMemoryFallback ? 'in-memory' : 'Firestore'})`);
+    } catch (storeErr) {
+      console.error("Storage error (continuing with response):", storeErr.message);
+      // Continue with the response even if storage fails
+    }
 
     res.json({ answer });
   } catch (err) {

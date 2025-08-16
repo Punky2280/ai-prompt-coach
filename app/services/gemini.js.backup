@@ -33,20 +33,6 @@ async function generateText(prompt, opts = {}) {
     maxOutputTokens = 1024,
   } = opts;
 
-  // Development/Mock mode
-  const USE_MOCK = process.env.USE_MOCK_RESPONSES === 'true';
-  if (USE_MOCK) {
-    console.log(`🎭 Mock mode: responding to prompt "${prompt.substring(0, 50)}..."`);
-    const mockResponses = [
-      "I'm a helpful AI assistant! I can help you with various tasks like answering questions, writing content, and providing information.",
-      "Thanks for your question! In development mode, I'm providing mock responses to test the application functionality.",
-      "This is a mock response generated for testing purposes. The AI Prompt Coach application is working correctly!",
-      "Hello! I'm simulating an AI response. In production, this would be powered by Google's Gemini AI model."
-    ];
-    const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-    return `${randomResponse}\n\n(This is a mock response - set USE_MOCK_RESPONSES=false in .env to use real Gemini API)`;
-  }
-
   try {
     // ➋ Pick the model ---------------------------------------------
     const gModel = genAI.getGenerativeModel({ model });
@@ -71,7 +57,6 @@ async function generateText(prompt, opts = {}) {
     return text || "No response from Gemini";
   } catch (err) {
     console.error("Gemini error →", err);
-    console.log("💡 Tip: Set USE_MOCK_RESPONSES=true in .env for development mode");
     return `Error: ${err.message ?? err}`;
   }
 }
