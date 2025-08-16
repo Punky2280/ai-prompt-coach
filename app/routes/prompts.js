@@ -8,6 +8,7 @@ const express   = require("express");
 const router    = express.Router();
 const { generateText } = require("../services/gemini");   // JS wrapper
 const { promptsCol, useInMemoryFallback }   = require("../lib/firestore");     // your Firestore util
+const { incrementPromptCount } = require("../lib/metrics");
 
 router.post("/", async (req, res) => {
   try {
@@ -19,6 +20,9 @@ router.post("/", async (req, res) => {
 
     // Forward optional knobs to the wrapper if you like
     const answer = await generateText(cleanPrompt, { model, thinkingBudget });
+    
+    // Increment prompt counter for metrics
+    incrementPromptCount();
 
     // Persist to Firestore or in-memory fallback
     try {

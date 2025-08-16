@@ -12,6 +12,9 @@ const morgan  = require('morgan');
 const promptRoutes  = require('./routes/prompts');
 const historyRoutes = require('./routes/history');
 
+/* ─────────────────────────────  METRICS  ───────────────────────────── */
+const { countRequest, getMetrics } = require('./lib/metrics');
+
 /* ──────────────────────────  APP CONFIG  ────────────────────────── */
 const app  = express();
 const PORT = process.env.PORT || 8083;
@@ -21,6 +24,7 @@ const HOST = '0.0.0.0';                                   // bind to all
 app.use(cors({ origin: '*' }));        // adjust for prod if needed
 app.use(express.json());               // JSON body-parser
 app.use(morgan('dev'));                // request logger
+app.use(countRequest);                 // metrics collection
 
 /* ────────────────────────────  ROUTES  ──────────────────────────── */
 app.get('/',   (_req, res) => res.send('AI Prompt backend is live!'));
@@ -29,6 +33,7 @@ app.get('/ping', (_req, res) => res.json({ status: 'ok' })); // health
 // Comprehensive health check endpoint
 app.get('/health', async (_req, res) => {
   const { useInMemoryFallback } = require('./lib/firestore');
+  const metrics = getMetrics();
   
   const health = {
     status: 'ok',
@@ -41,10 +46,51 @@ app.get('/health', async (_req, res) => {
     endpoints: {
       'POST /api/prompts': 'available',
       'GET /api/history': 'available'
+    },
+    metrics: {
+      requestCount: metrics.requestCount,
+      errorCount: metrics.errorCount,
+      errorRate: metrics.errorRate,
+      promptsProcessed: metrics.promptsProcessed,
+      averageResponseTime: Math.round(metrics.averageResponseTime) + 'ms',
+      uptime: Math.round(metrics.uptime / 1000) + 's',
+      lastRequest: metrics.lastRequestTime
     }
   };
   
   res.json(health);
+});
+
+// Basic metrics endpoint for monitoring
+app.get('/metrics', (_req, res) => {
+  res.json(getMetrics());
+});
+
+// Kubernetes-style readiness probe
+app.get('/ready', (_req, res) => {
+  // Check if services are ready to handle requests
+  const { useInMemoryFallback } = require('./lib/firestore');
+  
+  const ready = {
+    status: 'ready',
+    timestamp: new Date().toISOString(),
+    services: {
+      database: useInMemoryFallback ? 'fallback-ready' : 'firestore-ready',
+      ai: process.env.USE_MOCK_RESPONSES === 'true' ? 'mock-ready' : 'gemini-ready'
+    }
+  };
+  
+  res.json(ready);
+});
+
+// Kubernetes-style liveness probe  
+app.get('/live', (_req, res) => {
+  // Simple liveness check - server is responding
+  res.json({ 
+    status: 'alive', 
+    timestamp: new Date().toISOString(),
+    uptime: Math.round(getMetrics().uptime / 1000) + 's'
+  });
 });
 
 app.use('/api/prompts', promptRoutes);   // POST /api/prompts
