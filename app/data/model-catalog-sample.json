@@ -1,0 +1,76 @@
+{
+  "catalog_version": "v1.0.0",
+  "generated_at_utc": "2025-01-16T10:00:00Z",
+  "models": [
+    {
+      "id": 1,
+      "repo_id": "meta-llama/Meta-Llama-3-8B-Instruct",
+      "category": "general",
+      "approx_params": "8B",
+      "primary_tasks": ["chat", "reasoning", "general"],
+      "serverless_candidate": true,
+      "requires_endpoint": false,
+      "notes": "Balanced general instruct; good latency-quality tradeoff.",
+      "provider": "huggingface",
+      "cost_per_1k_tokens": 0.0005,
+      "avg_latency_ms": 800,
+      "context_length": 8192
+    },
+    {
+      "id": 2,
+      "repo_id": "meta-llama/Meta-Llama-3-70B-Instruct",
+      "category": "general",
+      "approx_params": "70B",
+      "primary_tasks": ["chat", "reasoning", "complex"],
+      "serverless_candidate": false,
+      "requires_endpoint": true,
+      "notes": "High-quality large model; needs dedicated endpoint for stable latency.",
+      "provider": "huggingface",
+      "cost_per_1k_tokens": 0.005,
+      "avg_latency_ms": 3000,
+      "context_length": 8192
+    },
+    {
+      "id": 3,
+      "repo_id": "mistralai/Mistral-7B-Instruct-v0.3",
+      "category": "general",
+      "approx_params": "7B",
+      "primary_tasks": ["chat", "reasoning"],
+      "serverless_candidate": true,
+      "requires_endpoint": false,
+      "notes": "Fast instruct baseline.",
+      "provider": "huggingface",
+      "cost_per_1k_tokens": 0.0003,
+      "avg_latency_ms": 700,
+      "context_length": 32768
+    },
+    {
+      "id": 4,
+      "repo_id": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      "category": "general",
+      "approx_params": "8x7B-MoE",
+      "primary_tasks": ["chat", "reasoning", "creative"],
+      "serverless_candidate": false,
+      "requires_endpoint": true,
+      "notes": "MoE improves quality per token; endpoint recommended.",
+      "provider": "huggingface",
+      "cost_per_1k_tokens": 0.002,
+      "avg_latency_ms": 1500,
+      "context_length": 32768
+    },
+    {
+      "id": 5,
+      "repo_id": "Qwen/Qwen2.5-7B-Instruct",
+      "category": "general",
+      "approx_params": "7B",
+      "primary_tasks": ["chat", "reasoning", "multilingual"],
+      "serverless_candidate": true,
+      "requires_endpoint": false,
+      "notes": "Good multilingual coverage for moderate size.",
+      "provider": "huggingface",
+      "cost_per_1k_tokens": 0.0004,
+      "avg_latency_ms": 750,
+      "context_length": 131072
+    }
+  ]
+}
