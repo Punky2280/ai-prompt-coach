@@ -7,7 +7,7 @@ import { ModelCard as MC } from '@/types/models';
 interface Props {
   card: MC;
   selected?: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (_id: string) => void;
 }
 
 const ModelCard: React.FC<Props> = ({ card, selected, onSelect }) => (

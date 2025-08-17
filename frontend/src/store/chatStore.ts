@@ -9,9 +9,9 @@ export interface ChatState {
 
   /* actions */
   newConversation: () => void;
-  addMessage: (msg: Message) => void;
-  setActive: (id: string) => void;
-  toggleStar: (id: string) => void;
+  addMessage: (_msg: Message) => void;
+  setActive: (_id: string) => void;
+  toggleStar: (_id: string) => void;
 }
 
 /* ───────────────────────────────────────────

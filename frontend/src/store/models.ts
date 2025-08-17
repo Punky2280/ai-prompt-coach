@@ -5,7 +5,7 @@ import { modelCards } from '@/data/modelCards';
 
 interface ModelState {
   selectedModelId?: string;
-  setSelectedModel: (id: string) => void;
+  setSelectedModel: (_id: string) => void;
   getSelectedCard: () => ModelCard | undefined;
 }
 

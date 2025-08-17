@@ -17,7 +17,7 @@ export default function App() {
   ──────────────────────────────────────────── */
   useEffect(() => {
     loadHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   /* ───────────────────────────────────────────
@@ -41,7 +41,7 @@ export default function App() {
       const res = await sendPrompt(prompt.trim());
       setAnswer(res.answer);
       setPrompt('');
-    } catch (err) {
+    } catch (_err) {
       setError('❌ Failed to send prompt. Please try again.');
     } finally {
       setIsSending(false);
@@ -57,7 +57,7 @@ export default function App() {
     try {
       const items = await fetchHistory(20);
       setHistory(items);
-    } catch (err) {
+    } catch (_err) {
       setError('❌ Failed to load history.');
     } finally {
       setIsLoadingHistory(false);
