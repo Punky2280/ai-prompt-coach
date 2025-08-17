@@ -11,6 +11,7 @@ const morgan  = require('morgan');
 /* ────────────────────────────  ROUTES  ──────────────────────────── */
 const promptRoutes  = require('./routes/prompts');
 const historyRoutes = require('./routes/history');
+const workflowRoutes = require('./routes/workflows');
 
 /* ──────────────────────────  APP CONFIG  ────────────────────────── */
 const app  = express();
@@ -28,6 +29,7 @@ app.get('/ping', (_req, res) => res.json({ status: 'ok' })); // health
 
 app.use('/api/prompts', promptRoutes);   // POST /api/prompts
 app.use('/api/history', historyRoutes);  // GET  /api/history?limit=n
+app.use('/api/workflows', workflowRoutes); // Workflow automation API
 
 /* ─────────────────────  404 + ERROR HANDLERS  ───────────────────── */
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
