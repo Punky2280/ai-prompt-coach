@@ -2,8 +2,12 @@
 import { useState, useEffect } from 'react';
 import { sendPrompt, fetchHistory } from './api';
 import type { HistoryItem } from './types';
+import WorkflowPage from './components/WorkflowPage';
+
+type Page = 'chat' | 'workflows';
 
 export default function App() {
+  const [currentPage, setCurrentPage] = useState<Page>('chat');
   const [prompt, setPrompt] = useState('');
   const [answer, setAnswer] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -16,9 +20,11 @@ export default function App() {
      Load the last 20 history items on first render
   ──────────────────────────────────────────── */
   useEffect(() => {
-    loadHistory();
+    if (currentPage === 'chat') {
+      loadHistory();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage]);
 
   /* ───────────────────────────────────────────
      Send a prompt to the backend
@@ -65,11 +71,52 @@ export default function App() {
   };
 
   /* ───────────────────────────────────────────
-     UI
+     Navigation component
   ──────────────────────────────────────────── */
-  return (
+  const Navigation = () => (
+    <nav className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between max-w-6xl mx-auto">
+        <div className="flex items-center gap-8">
+          <h1 className="text-xl font-bold text-gray-900">AI Prompt Coach</h1>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setCurrentPage('chat')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentPage === 'chat'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Chat
+            </button>
+            <button
+              onClick={() => setCurrentPage('workflows')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentPage === 'workflows'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              Workflows
+            </button>
+          </div>
+        </div>
+        
+        {/* Phase indicator */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Phase A</span>
+          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+        </div>
+      </div>
+    </nav>
+  );
+
+  /* ───────────────────────────────────────────
+     Chat page component
+  ──────────────────────────────────────────── */
+  const ChatPage = () => (
     <main className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Chat</h1>
+      <h2 className="text-2xl font-bold mb-4">Chat with AI</h2>
 
       {/* Prompt textarea */}
       <textarea
@@ -92,7 +139,7 @@ export default function App() {
       {/* Latest answer */}
       {answer && (
         <section className="mt-6">
-          <h2 className="font-semibold mb-1">Answer</h2>
+          <h3 className="font-semibold mb-1">Answer</h3>
           <p className="whitespace-pre-wrap border rounded p-3 bg-slate-50">
             {answer}
           </p>
@@ -124,5 +171,17 @@ export default function App() {
         </ul>
       )}
     </main>
+  );
+
+  /* ───────────────────────────────────────────
+     Main UI
+  ──────────────────────────────────────────── */
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
+      {currentPage === 'chat' && <ChatPage />}
+      {currentPage === 'workflows' && <WorkflowPage />}
+    </div>
   );
 }

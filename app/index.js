@@ -9,8 +9,10 @@ const cors    = require('cors');
 const morgan  = require('morgan');
 
 /* ────────────────────────────  ROUTES  ──────────────────────────── */
-const promptRoutes  = require('./routes/prompts');
-const historyRoutes = require('./routes/history');
+const promptRoutes     = require('./routes/prompts');
+const historyRoutes    = require('./routes/history');
+const workflowRoutes   = require('./routes/workflows');       // SSE streaming
+const workflowApiRoutes = require('./routes/workflow-api');   // CRUD operations
 
 /* ──────────────────────────  APP CONFIG  ────────────────────────── */
 const app  = express();
@@ -26,8 +28,13 @@ app.use(morgan('dev'));                // request logger
 app.get('/',   (_req, res) => res.send('AI Prompt backend is live!'));
 app.get('/ping', (_req, res) => res.json({ status: 'ok' })); // health
 
+// Legacy prompt API (preserve existing functionality)
 app.use('/api/prompts', promptRoutes);   // POST /api/prompts
 app.use('/api/history', historyRoutes);  // GET  /api/history?limit=n
+
+// New workflow automation API (Phase A)
+app.use('/api/workflows', workflowApiRoutes);  // Workflow CRUD operations
+app.use('/api/workflows', workflowRoutes);     // SSE streaming
 
 /* ─────────────────────  404 + ERROR HANDLERS  ───────────────────── */
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
