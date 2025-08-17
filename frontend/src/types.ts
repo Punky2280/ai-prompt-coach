@@ -11,3 +11,13 @@ export interface Conversation {
   starred: boolean;
   updatedAt: number;          // unix ms
 }
+
+export interface HistoryItem {
+  id: string;
+  prompt: string;
+  answer?: string;
+}
+
+export interface PromptResponse {
+  answer: string;
+}
