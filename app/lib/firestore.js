@@ -1,4 +1,4 @@
-const { Firestore } = require('@google-cloud/firestore');
+import { Firestore } from '@google-cloud/firestore';
 
 /*  Auto-auth:
       • In Cloud Shell / Cloud Run it auto-detects project & creds
@@ -7,4 +7,4 @@ const { Firestore } = require('@google-cloud/firestore');
 const db         = new Firestore();
 const promptsCol = db.collection('prompts');
 
-module.exports = { db, promptsCol };
+export { db, promptsCol };

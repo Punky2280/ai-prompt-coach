@@ -1,13 +1,14 @@
-// routes/prompts.js  (CommonJS)
+// routes/prompts.js  (ES6 modules)
 // ---------------------------------------------------------------
 // POST /prompts
 // Body: { prompt: string, model?: string, thinkingBudget?: number }
 // ---------------------------------------------------------------
 
-const express   = require("express");
-const router    = express.Router();
-const { generateText } = require("../services/gemini");   // JS wrapper
-const { promptsCol }   = require("../lib/firestore");     // your Firestore util
+import express from "express";
+import { generateText } from "../services/gemini.js";   // JS wrapper
+import { promptsCol } from "../lib/firestore.js";       // your Firestore util
+
+const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
@@ -34,4 +35,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -49,4 +49,4 @@ async function generateContent(prompt, model = MODEL) {
   );
 }
 
-module.exports = { generateContent };
+export { generateContent };

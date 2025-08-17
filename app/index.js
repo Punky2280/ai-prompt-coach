@@ -1,16 +1,16 @@
 // index.js
 /* ─────────────────────  ENV + BASIC DIAGNOSTIC  ─────────────────── */
-require('dotenv').config();                               // load .env
+import 'dotenv/config';                                     // load .env
 console.log('Running with', process.version, '| fetch:', typeof fetch);
 
 /* ───────────────────────────  IMPORTS  ──────────────────────────── */
-const express = require('express');
-const cors    = require('cors');
-const morgan  = require('morgan');
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
 
 /* ────────────────────────────  ROUTES  ──────────────────────────── */
-const promptRoutes  = require('./routes/prompts');
-const historyRoutes = require('./routes/history');
+import promptRoutes from './routes/prompts.js';
+import historyRoutes from './routes/history.js';
 
 /* ──────────────────────────  APP CONFIG  ────────────────────────── */
 const app  = express();

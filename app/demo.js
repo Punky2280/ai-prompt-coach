@@ -1,6 +1,6 @@
 // demo.js
-require('dotenv').config();               // loads GEMINI_API_KEY
-const { generateContent } = require('./googleGenAI');
+import "dotenv/config";               // loads GEMINI_API_KEY
+import { generateContent } from './googleGenAI.js';
 
 (async () => {
   try {

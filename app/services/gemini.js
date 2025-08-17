@@ -1,13 +1,13 @@
 // services/gemini.js
 // ------------------------------------------------------------------
-//  Gemini wrapper – NodeJS (CommonJS)
+//  Gemini wrapper – NodeJS (ES6 modules)
 //  npm i @google/generative-ai
 //  export GEMINI_API_KEY=AIzaSy*********************************
 // ------------------------------------------------------------------
 
-require("dotenv").config();
+import "dotenv/config";
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // ➊ Create the client ------------------------------------------------
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -61,4 +61,4 @@ async function generateText(prompt, opts = {}) {
   }
 }
 
-module.exports = { generateText };
+export { generateText };
