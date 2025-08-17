@@ -1,21 +1,32 @@
 {
-  "name": "ai-prompt-coach-backend",
+  "name": "cartrita-workflow-platform",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Cartrita Unified Workflow Automation Platform with n8n + Zapier + MCP + RAG parity",
 
   "scripts": {
-    "start": "node index.js",      
-    "dev": "nodemon index.js"      
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "legacy": "LEGACY_MODE=true node src/server.js",
+    "test": "node test/test-runner.js"
   },
 
   "dependencies": {
     "@google-cloud/aiplatform": "^4.4.0",
     "google-auth-library": "^10.1.0",
-    "dotenv": "^17.2.0"
+    "dotenv": "^17.2.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.1",
+    "uuid": "^9.0.0"
   },
 
   "devDependencies": {
-    "nodemon": "^3.0.3"            
+    "nodemon": "^3.0.3"
+  },
+
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
