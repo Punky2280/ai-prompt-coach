@@ -1,9 +1,13 @@
 // src/App.tsx
 import { useState, useEffect } from 'react';
 import { sendPrompt, fetchHistory } from './api';
+import { WorkflowsPage } from './components/workflows/WorkflowsPage';
 import type { HistoryItem } from './types';
 
+type View = 'chat' | 'workflows';
+
 export default function App() {
+  const [currentView, setCurrentView] = useState<View>('chat');
   const [prompt, setPrompt] = useState('');
   const [answer, setAnswer] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -16,9 +20,11 @@ export default function App() {
      Load the last 20 history items on first render
   ──────────────────────────────────────────── */
   useEffect(() => {
-    loadHistory();
+    if (currentView === 'chat') {
+      loadHistory();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentView]);
 
   /* ───────────────────────────────────────────
      Send a prompt to the backend
@@ -64,65 +70,134 @@ export default function App() {
     }
   };
 
+  // Render workflows view
+  if (currentView === 'workflows') {
+    return (
+      <div className="h-screen flex flex-col">
+        {/* Navigation */}
+        <nav className="bg-white border-b border-slate-200 px-4 py-3">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold text-slate-900">AI Prompt Coach</h1>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentView('chat')}
+                className={`px-3 py-1 text-sm rounded-md ${
+                  currentView === 'chat'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Chat
+              </button>
+              <button
+                onClick={() => setCurrentView('workflows')}
+                className={`px-3 py-1 text-sm rounded-md ${
+                  currentView === 'workflows'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Workflows
+              </button>
+            </div>
+          </div>
+        </nav>
+        
+        <WorkflowsPage />
+      </div>
+    );
+  }
+
   /* ───────────────────────────────────────────
-     UI
+     Chat UI (original)
   ──────────────────────────────────────────── */
   return (
-    <main className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Chat</h1>
+    <div className="h-screen flex flex-col">
+      {/* Navigation */}
+      <nav className="bg-white border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-semibold text-slate-900">AI Prompt Coach</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentView('chat')}
+              className={`px-3 py-1 text-sm rounded-md ${
+                currentView === 'chat'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              Chat
+            </button>
+            <button
+              onClick={() => setCurrentView('workflows')}
+              className={`px-3 py-1 text-sm rounded-md ${
+                currentView === 'workflows'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              Workflows
+            </button>
+          </div>
+        </div>
+      </nav>
 
-      {/* Prompt textarea */}
-      <textarea
-        className="border rounded p-2 w-full resize-y min-h-[100px] focus:outline-blue-500"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Type your prompt…"
-        disabled={isSending}
-      />
+      <main className="flex-1 p-6 max-w-2xl mx-auto w-full">
+        <h2 className="text-xl font-bold mb-4">Chat</h2>
 
-      {/* Send button */}
-      <button
-        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:bg-blue-300"
-        onClick={handleSend}
-        disabled={isSending || !prompt.trim()}
-      >
-        {isSending ? 'Sending…' : 'Send'}
-      </button>
+        {/* Prompt textarea */}
+        <textarea
+          className="border rounded p-2 w-full resize-y min-h-[100px] focus:outline-blue-500"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Type your prompt…"
+          disabled={isSending}
+        />
 
-      {/* Latest answer */}
-      {answer && (
-        <section className="mt-6">
-          <h2 className="font-semibold mb-1">Answer</h2>
-          <p className="whitespace-pre-wrap border rounded p-3 bg-slate-50">
-            {answer}
-          </p>
-        </section>
-      )}
+        {/* Send button */}
+        <button
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded disabled:bg-blue-300"
+          onClick={handleSend}
+          disabled={isSending || !prompt.trim()}
+        >
+          {isSending ? 'Sending…' : 'Send'}
+        </button>
 
-      {/* Error banner */}
-      {error && (
-        <p className="mt-4 text-red-600 font-semibold">{error}</p>
-      )}
+        {/* Latest answer */}
+        {answer && (
+          <section className="mt-6">
+            <h3 className="font-semibold mb-1">Answer</h3>
+            <p className="whitespace-pre-wrap border rounded p-3 bg-slate-50">
+              {answer}
+            </p>
+          </section>
+        )}
 
-      {/* Load history */}
-      <button
-        className="mt-8 px-3 py-1 border rounded"
-        onClick={loadHistory}
-        disabled={isLoadingHistory}
-      >
-        {isLoadingHistory ? 'Loading…' : 'Reload history'}
-      </button>
+        {/* Error banner */}
+        {error && (
+          <p className="mt-4 text-red-600 font-semibold">{error}</p>
+        )}
 
-      {/* History list */}
-      {history.length > 0 && (
-        <ul className="mt-4 list-disc list-inside space-y-1">
-          {history.map((item) => (
-            <li key={item.id} className="truncate">
-              {item.prompt}
-            </li>
-          ))}
-        </ul>
-      )}
-    </main>
+        {/* Load history */}
+        <button
+          className="mt-8 px-3 py-1 border rounded"
+          onClick={loadHistory}
+          disabled={isLoadingHistory}
+        >
+          {isLoadingHistory ? 'Loading…' : 'Reload history'}
+        </button>
+
+        {/* History list */}
+        {history.length > 0 && (
+          <ul className="mt-4 list-disc list-inside space-y-1">
+            {history.map((item) => (
+              <li key={item.id} className="truncate">
+                {item.prompt}
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </div>
   );
 }
