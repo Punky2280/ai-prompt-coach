@@ -33,7 +33,7 @@ const Chat = () => {
     setPrompt('');
 
     // 2) call backend
-    const res = await fetch('/api/chat', {
+    const res = await fetch('/api/prompts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: userMsg.content })
@@ -41,7 +41,7 @@ const Chat = () => {
     const data = await res.json();
 
     // 3) push assistant message
-    const assistantMsg: Message = { role: 'assistant', content: data.text };
+    const assistantMsg: Message = { role: 'assistant', content: data.answer };
     addMessage(assistantMsg);
   };
 

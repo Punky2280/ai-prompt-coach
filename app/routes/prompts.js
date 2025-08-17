@@ -20,12 +20,16 @@ router.post("/", async (req, res) => {
     // Forward optional knobs to the wrapper if you like
     const answer = await generateText(cleanPrompt, { model, thinkingBudget });
 
-    // Persist to Firestore
-    await promptsCol.add({
-      prompt: cleanPrompt,
-      answer,
-      createdAt: new Date(),          // nicer in the console / query
-    });
+    // Try to persist to Firestore (but don't fail if it doesn't work)
+    try {
+      await promptsCol.add({
+        prompt: cleanPrompt,
+        answer,
+        createdAt: new Date(),          // nicer in the console / query
+      });
+    } catch (firestoreErr) {
+      console.warn("Failed to save to Firestore (continuing anyway):", firestoreErr.message);
+    }
 
     res.json({ answer });
   } catch (err) {

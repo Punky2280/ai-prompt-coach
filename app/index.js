@@ -28,6 +28,13 @@ app.get('/ping', (_req, res) => res.json({ status: 'ok' })); // health
 
 app.use('/api/prompts', promptRoutes);   // POST /api/prompts
 app.use('/api/history', historyRoutes);  // GET  /api/history?limit=n
+app.use('/api/chat/history', historyRoutes);  // GET  /api/chat/history?limit=n (alias)
+
+// Health and status endpoints (stubs to prevent 500 errors)
+app.get('/api/health/metrics/security', (_req, res) => res.json({ status: 'ok', metrics: {} }));
+app.get('/api/health/metrics/api-keys', (_req, res) => res.json({ status: 'ok', metrics: {} }));
+app.get('/api/health/metrics/activity', (_req, res) => res.json({ status: 'ok', metrics: {} }));
+app.get('/api/email/status', (_req, res) => res.json({ status: 'ok', enabled: false }));
 
 /* ─────────────────────  404 + ERROR HANDLERS  ───────────────────── */
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
