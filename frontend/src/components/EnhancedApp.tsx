@@ -6,7 +6,8 @@ import ModelSelector from './ModelSelector';
 import RoutingInfo from './RoutingInfo';
 import { sendPrompt } from '@/api';
 import { useModelStore } from '@/store/models';
-import type { EnhancedPromptResponse, RoutingOptions } from '@/types';
+import type { EnhancedPromptResponse } from '@/types';
+import type { RoutingOptions } from '@/types/models';
 
 const EnhancedApp: React.FC = () => {
   const [prompt, setPrompt] = useState('');
