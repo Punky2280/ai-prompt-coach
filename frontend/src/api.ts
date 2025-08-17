@@ -1,6 +1,6 @@
 // src/api.ts
 import axios from 'axios';
-import type { PromptResponse, HistoryItem } from './types';
+import type { PromptResponse, HistoryItem, RAGDocument, RAGStats, RAGSearchResult } from './types';
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE,
@@ -10,10 +10,11 @@ const API = axios.create({
 // POST /api/prompts  → { answer }
 export async function sendPrompt(
   prompt: string,
+  enableRAG = false,
 ): Promise<PromptResponse> {
   const { data } = await API.post<PromptResponse>(
     '/api/prompts',
-    { prompt },
+    { prompt, enableRAG },
   );
   return data;
 }
@@ -26,5 +27,30 @@ export async function fetchHistory(
     '/api/history',
     { params: { limit } },
   );
+  return data;
+}
+
+// RAG API Functions
+export async function ingestDocument(document: {
+  title: string;
+  content: string;
+  source: string;
+  contentType?: string;
+  metadata?: object;
+}): Promise<{ success: boolean; data?: { documentId: string; message: string } }> {
+  const { data } = await API.post('/api/rag/documents', document);
+  return data;
+}
+
+export async function getRagStats(): Promise<{ success: boolean; data?: RAGStats }> {
+  const { data } = await API.get('/api/rag/stats');
+  return data;
+}
+
+export async function searchDocuments(query: string, topK = 5, threshold = 0.7): Promise<{ 
+  success: boolean; 
+  data?: RAGSearchResult 
+}> {
+  const { data } = await API.post('/api/rag/search', { query, topK, threshold });
   return data;
 }

@@ -1,11 +1,16 @@
 // src/components/Chat.tsx
 import React, { useRef, useEffect, useState } from 'react';
 import { useChatStore } from '../store/chatStore';
+import { sendPrompt as apiSendPrompt } from '../api';
 import { Message } from '../types';
+import RAGSettings from './RAGSettings';
 
 const Chat = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
   const [prompt, setPrompt] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [enableRAG, setEnableRAG] = useState(false);
+  const [showRAGSettings, setShowRAGSettings] = useState(false);
 
   const { activeId, conversations, addMessage } = useChatStore();
 
@@ -24,25 +29,38 @@ const Chat = () => {
     );
   }
 
-  const sendPrompt = async () => {
-    if (!prompt.trim()) return;
+  const handleSendPrompt = async () => {
+    if (!prompt.trim() || loading) return;
 
     // 1) push user message locally
     const userMsg: Message = { role: 'user', content: prompt.trim() };
     addMessage(userMsg);
+    
+    const currentPrompt = prompt.trim();
     setPrompt('');
+    setLoading(true);
 
-    // 2) call backend
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: userMsg.content })
-    });
-    const data = await res.json();
-
-    // 3) push assistant message
-    const assistantMsg: Message = { role: 'assistant', content: data.text };
-    addMessage(assistantMsg);
+    try {
+      // 2) call backend with RAG option
+      const response = await apiSendPrompt(currentPrompt, enableRAG);
+      
+      // 3) push assistant message with metadata
+      const assistantMsg: Message = { 
+        role: 'assistant', 
+        content: response.success ? response.data?.answer || 'No response' : 'Error: ' + response.error,
+        metadata: response.data?.metadata
+      };
+      addMessage(assistantMsg);
+    } catch (error) {
+      console.error('Failed to send prompt:', error);
+      const errorMsg: Message = { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error while processing your request.'
+      };
+      addMessage(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,18 +82,64 @@ const Chat = () => {
               }`}
             >
               {m.content}
+              {/* RAG metadata display */}
+              {m.metadata && m.role === 'assistant' && (
+                <div className="mt-2 text-xs opacity-70 border-t pt-2">
+                  {m.metadata.ragUsed && (
+                    <div className="space-y-1">
+                      <div>🔍 RAG: {m.metadata.retrievedChunks || 0} chunks retrieved</div>
+                      {m.metadata.contextLength && (
+                        <div>📄 Context: {m.metadata.contextLength} chars</div>
+                      )}
+                      {m.metadata.sources && m.metadata.sources.length > 0 && (
+                        <div>📚 Sources: {m.metadata.sources.length} documents</div>
+                      )}
+                      {m.metadata.fallback && (
+                        <div>⚠️ Fallback: RAG failed, used standard generation</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
 
+      {/* RAG Settings Panel */}
+      {showRAGSettings && (
+        <div className="border-t p-4">
+          <RAGSettings 
+            enableRAG={enableRAG} 
+            onToggleRAG={setEnableRAG} 
+          />
+        </div>
+      )}
+
       {/* input */}
       <div className="border-t p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="flex items-center text-sm">
+            <input
+              type="checkbox"
+              checked={enableRAG}
+              onChange={(e) => setEnableRAG(e.target.checked)}
+              className="mr-1"
+            />
+            Use RAG
+          </label>
+          <button
+            onClick={() => setShowRAGSettings(!showRAGSettings)}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            {showRAGSettings ? 'Hide' : 'Show'} RAG Settings
+          </button>
+        </div>
         <form
           onSubmit={e => {
             e.preventDefault();
-            sendPrompt();
+            handleSendPrompt();
           }}
           className="flex gap-2"
         >
@@ -85,9 +149,14 @@ const Chat = () => {
             placeholder="Type a prompt…"
             rows={1}
             className="flex-1 resize-none border rounded-lg p-2"
+            disabled={loading}
           />
-          <button type="submit" className="bg-blue-600 text-white px-4 rounded">
-            Send
+          <button 
+            type="submit" 
+            disabled={loading || !prompt.trim()}
+            className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Sending...' : 'Send'}
           </button>
         </form>
       </div>
